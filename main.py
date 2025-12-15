@@ -6,9 +6,9 @@ import time
 import numpy as np
 from environment. grid_map import GridMap
 from algorithms.astar import AStarPlanner
-from algorithms. dijkstra import DijkstraPlanner
+from algorithms.dijkstra import DijkstraPlanner
 from utils.visualizer import Visualizer
-from utils. metrics import Metrics
+from utils.metrics import Metrics
 from config import MAP_CONFIG, ASTAR_CONFIG, DIJKSTRA_CONFIG, RESULTS_DIR, RANDOM_SEED
 import os
 
@@ -28,10 +28,10 @@ def run_single_test(grid_map, start, goal, algorithm_name='astar'):
     print(f"\n运行 {algorithm_name. upper()} 算法...")
     
     # 选择算法
-    if algorithm_name == 'astar': 
+    if algorithm_name == 'astar':  
         planner = AStarPlanner(grid_map)
         planner.allow_diagonal = ASTAR_CONFIG['allow_diagonal']
-    elif algorithm_name == 'dijkstra':
+    elif algorithm_name == 'dijkstra': 
         planner = DijkstraPlanner(grid_map)
         planner.allow_diagonal = DIJKSTRA_CONFIG['allow_diagonal']
     else:
@@ -40,8 +40,8 @@ def run_single_test(grid_map, start, goal, algorithm_name='astar'):
     # 开始规划
     path, stats = planner.plan(start, goal)
     
-    if path: 
-        print(f"✓ 找到路径!  长度: {len(path)}, 耗时: {stats['planning_time']:.4f}秒, 探索节点: {stats['nodes_explored']}")
+    if path:  
+        print(f"✓ 找到路径! 长度:  {len(path)}, 耗时: {stats['planning_time']:.4f}秒, 探索节点: {stats['nodes_explored']}")
     else:
         print(f"✗ 未找到路径!  耗时: {stats['planning_time']:.4f}秒, 探索节点: {stats['nodes_explored']}")
     
@@ -79,7 +79,7 @@ def run_comparison(map_type='medium'):
     grid_map.grid[start[1], start[0]] = 0
     grid_map.grid[goal[1], goal[0]] = 0
     
-    print(f"地图大小: {config['size']}")
+    print(f"地图大小:  {config['size']}")
     print(f"起点: {start}, 终点: {goal}")
     
     # 保存地图
@@ -110,17 +110,17 @@ def run_comparison(map_type='medium'):
             save_path = os.path.join(RESULTS_DIR, 'images', f'{map_type}_{algo}_path.png')
             visualizer.plot_path(
                 path, start, goal,
-                title=f'{algo. upper()} Path Planning - {map_type.upper()}',
+                title=f'{algo.upper()} Path Planning - {map_type.upper()}',
                 explored_nodes=explored[algo],
                 save_path=save_path
             )
     
     # 绘制对比图
-    comparison_path = os.path.join(RESULTS_DIR, 'comparison', f'{map_type}_comparison. png')
+    comparison_path = os.path.join(RESULTS_DIR, 'comparison', f'{map_type}_comparison.png')
     visualizer.plot_comparison(paths, start, goal, explored, save_path=comparison_path)
     
     # 绘制性能对比图
-    performance_path = os.path.join(RESULTS_DIR, 'comparison', f'{map_type}_performance.png')
+    performance_path = os. path.join(RESULTS_DIR, 'comparison', f'{map_type}_performance.png')
     visualizer.plot_performance_bars(metrics_data, save_path=performance_path)
     
     # 保存性能数据
@@ -136,7 +136,7 @@ def run_comparison(map_type='medium'):
     for algo, metrics in metrics_data.items():
         if metrics['success']:
             print(f"{algo. upper():<15} {metrics['path_length']:<12.2f} "
-                  f"{metrics['planning_time']:<15.4f} {metrics['nodes_explored']:<12} "
+                  f"{metrics['planning_time']: <15.4f} {metrics['nodes_explored']:<12} "
                   f"{metrics['smoothness']:<10.2f}")
         else:
             print(f"{algo.upper():<15} {'FAILED':<12} {metrics['planning_time']:<15.4f} "
