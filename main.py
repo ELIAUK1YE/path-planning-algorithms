@@ -5,8 +5,8 @@
 import time
 import numpy as np
 from environment. grid_map import GridMap
-from algorithms.astar import AStar
-from algorithms. dijkstra import Dijkstra
+from algorithms.astar import AStarPlanner
+from algorithms. dijkstra import DijkstraPlanner
 from utils.visualizer import Visualizer
 from utils. metrics import Metrics
 from config import MAP_CONFIG, ASTAR_CONFIG, DIJKSTRA_CONFIG, RESULTS_DIR, RANDOM_SEED
@@ -23,32 +23,29 @@ def run_single_test(grid_map, start, goal, algorithm_name='astar'):
         algorithm_name: 算法名称 ('astar' 或 'dijkstra')
     
     Returns:
-        tuple: (path, planning_time, nodes_explored)
+        tuple: (path, planning_time, nodes_explored, explored_nodes)
     """
     print(f"\n运行 {algorithm_name. upper()} 算法...")
     
     # 选择算法
     if algorithm_name == 'astar': 
-        planner = AStar(grid_map, **ASTAR_CONFIG)
+        planner = AStarPlanner(grid_map)
+        planner.allow_diagonal = ASTAR_CONFIG['allow_diagonal']
     elif algorithm_name == 'dijkstra':
-        planner = Dijkstra(grid_map, **DIJKSTRA_CONFIG)
+        planner = DijkstraPlanner(grid_map)
+        planner.allow_diagonal = DIJKSTRA_CONFIG['allow_diagonal']
     else:
         raise ValueError(f"未知算法:  {algorithm_name}")
     
     # 开始规划
-    start_time = time.time()
-    path = planner.plan(start, goal)
-    planning_time = time.time() - start_time
+    path, stats = planner.plan(start, goal)
     
-    # 获取探索的节点数
-    nodes_explored = len(planner.closed_set)
-    
-    if path:
-        print(f"✓ 找到路径!  长度: {len(path)}, 耗时: {planning_time:. 4f}秒, 探索节点: {nodes_explored}")
+    if path: 
+        print(f"✓ 找到路径!  长度: {len(path)}, 耗时: {stats['planning_time']:.4f}秒, 探索节点: {stats['nodes_explored']}")
     else:
-        print(f"✗ 未找到路径!  耗时: {planning_time:.4f}秒, 探索节点: {nodes_explored}")
+        print(f"✗ 未找到路径!  耗时: {stats['planning_time']:.4f}秒, 探索节点: {stats['nodes_explored']}")
     
-    return path, planning_time, nodes_explored, planner. closed_set
+    return path, stats['planning_time'], stats['nodes_explored'], stats['explored_nodes']
 
 
 def run_comparison(map_type='medium'):
@@ -59,7 +56,7 @@ def run_comparison(map_type='medium'):
         map_type: 地图类型 ('simple', 'medium', 'complex', 'maze', 'large')
     """
     print("="*60)
-    print(f"路径规划算法对比测试 - {map_type.upper()} 地图")
+    print(f"路径规划算法对比测试 - {map_type. upper()} 地图")
     print("="*60)
     
     # 设置随机种子
@@ -82,7 +79,7 @@ def run_comparison(map_type='medium'):
     grid_map.grid[start[1], start[0]] = 0
     grid_map.grid[goal[1], goal[0]] = 0
     
-    print(f"地图大小:  {config['size']}")
+    print(f"地图大小: {config['size']}")
     print(f"起点: {start}, 终点: {goal}")
     
     # 保存地图
@@ -96,9 +93,9 @@ def run_comparison(map_type='medium'):
     metrics_data = {}
     
     for algo in algorithms:
-        path, plan_time, nodes_exp, closed = run_single_test(grid_map, start, goal, algo)
+        path, plan_time, nodes_exp, explored_nodes = run_single_test(grid_map, start, goal, algo)
         paths[algo] = path
-        explored[algo] = list(closed)
+        explored[algo] = explored_nodes
         
         # 计算性能指标
         metrics = Metrics. evaluate_path(path, grid_map, plan_time, nodes_exp)
@@ -113,13 +110,13 @@ def run_comparison(map_type='medium'):
             save_path = os.path.join(RESULTS_DIR, 'images', f'{map_type}_{algo}_path.png')
             visualizer.plot_path(
                 path, start, goal,
-                title=f'{algo.upper()} Path Planning - {map_type.upper()}',
+                title=f'{algo. upper()} Path Planning - {map_type.upper()}',
                 explored_nodes=explored[algo],
                 save_path=save_path
             )
     
     # 绘制对比图
-    comparison_path = os.path.join(RESULTS_DIR, 'comparison', f'{map_type}_comparison.png')
+    comparison_path = os.path.join(RESULTS_DIR, 'comparison', f'{map_type}_comparison. png')
     visualizer.plot_comparison(paths, start, goal, explored, save_path=comparison_path)
     
     # 绘制性能对比图
@@ -139,7 +136,7 @@ def run_comparison(map_type='medium'):
     for algo, metrics in metrics_data.items():
         if metrics['success']:
             print(f"{algo. upper():<15} {metrics['path_length']:<12.2f} "
-                  f"{metrics['planning_time']: <15.4f} {metrics['nodes_explored']:<12} "
+                  f"{metrics['planning_time']:<15.4f} {metrics['nodes_explored']:<12} "
                   f"{metrics['smoothness']:<10.2f}")
         else:
             print(f"{algo.upper():<15} {'FAILED':<12} {metrics['planning_time']:<15.4f} "
