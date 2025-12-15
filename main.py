@@ -1,238 +1,161 @@
 """
-主程序入口
-支持命令行参数运行单个算法或对比实验
+路径规划算法主程序
+支持A*和Dijkstra算法的比较测试
 """
-import argparse
-import os
-import sys
 import time
 import numpy as np
+from environment. grid_map import GridMap
+from algorithms.astar import AStar
+from algorithms. dijkstra import Dijkstra
+from utils.visualizer import Visualizer
+from utils. metrics import Metrics
+from config import MAP_CONFIG, ASTAR_CONFIG, DIJKSTRA_CONFIG, RESULTS_DIR, RANDOM_SEED
+import os
 
-# 添加项目根目录到路径
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+def run_single_test(grid_map, start, goal, algorithm_name='astar'):
+    """
+    运行单个算法测试
+    
+    Args:
+        grid_map: GridMap对象
+        start: 起点坐标
+        goal: 终点坐标
+        algorithm_name: 算法名称 ('astar' 或 'dijkstra')
+    
+    Returns:
+        tuple: (path, planning_time, nodes_explored)
+    """
+    print(f"\n运行 {algorithm_name. upper()} 算法...")
+    
+    # 选择算法
+    if algorithm_name == 'astar': 
+        planner = AStar(grid_map, **ASTAR_CONFIG)
+    elif algorithm_name == 'dijkstra':
+        planner = Dijkstra(grid_map, **DIJKSTRA_CONFIG)
+    else:
+        raise ValueError(f"未知算法:  {algorithm_name}")
+    
+    # 开始规划
+    start_time = time.time()
+    path = planner.plan(start, goal)
+    planning_time = time.time() - start_time
+    
+    # 获取探索的节点数
+    nodes_explored = len(planner.closed_set)
+    
+    if path:
+        print(f"✓ 找到路径!  长度: {len(path)}, 耗时: {planning_time:. 4f}秒, 探索节点: {nodes_explored}")
+    else:
+        print(f"✗ 未找到路径!  耗时: {planning_time:.4f}秒, 探索节点: {nodes_explored}")
+    
+    return path, planning_time, nodes_explored, planner. closed_set
 
-from config import *
 
-def main():
-    parser = argparse.ArgumentParser(
-        description='路径规划算法演示系统',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-示例用法:
-  python main.py --algorithm astar --map medium --visualize
-  python main.py --algorithm all --map complex --visualize --save
-  python main.py --algorithm rrt --map maze --visualize
-        """
-    )
+def run_comparison(map_type='medium'):
+    """
+    运行A*和Dijkstra算法的对比测试
     
-    parser.add_argument('--algorithm', '-a', type=str, default='astar',
-                       choices=['astar', 'dijkstra', 'rrt', 'genetic', 'all'],
-                       help='选择算法: astar, dijkstra, rrt, genetic, all')
-    
-    parser.add_argument('--map', '-m', type=str, default='medium',
-                       help='选择地图名称（不含扩展名）')
-    
-    parser.add_argument('--visualize', '-v', action='store_true',
-                       help='是否显示可视化结果')
-    
-    parser.add_argument('--save', '-s', action='store_true',
-                       help='是否保存结果图片到results/目录')
-    
-    args = parser.parse_args()
+    Args:
+        map_type: 地图类型 ('simple', 'medium', 'complex', 'maze', 'large')
+    """
+    print("="*60)
+    print(f"路径规划算法对比测试 - {map_type.upper()} 地图")
+    print("="*60)
     
     # 设置随机种子
     np.random.seed(RANDOM_SEED)
     
-    print("=" * 60)
-    print("路径规划算法演示系统".center(60))
-    print("=" * 60)
-    print(f"\n配置信息:")
-    print(f"  算法: {args.algorithm.upper()}")
-    print(f"  地图: {args.map}")
-    print(f"  可视化: {'是' if args.visualize else '否'}")
-    print(f"  保存结果: {'是' if args.save else '否'}")
-    print(f"  随机种子: {RANDOM_SEED}")
+    # 创建地图
+    config = MAP_CONFIG[map_type]
+    if config. get('type') == 'maze':
+        grid_map = GridMap(config['size'][0], config['size'][1])
+        grid_map.generate_maze()
+    else:
+        grid_map = GridMap(config['size'][0], config['size'][1])
+        grid_map.generate_random_obstacles(config['obstacle_density'])
     
-    try:
-        # 延迟导入，避免循环依赖
-        from environment import GridMap, MapGenerator
-        from algorithms import AStarPlanner, DijkstraPlanner, RRTPlanner, GeneticPlanner
-        from utils import Visualizer, Metrics
+    # 设置起点和终点
+    start = (5, 5)
+    goal = (config['size'][0]-6, config['size'][1]-6)
+    
+    # 确保起点和终点不是障碍物
+    grid_map.grid[start[1], start[0]] = 0
+    grid_map.grid[goal[1], goal[0]] = 0
+    
+    print(f"地图大小:  {config['size']}")
+    print(f"起点: {start}, 终点: {goal}")
+    
+    # 保存地图
+    map_save_path = os.path.join(RESULTS_DIR, 'images', f'{map_type}_map.png')
+    grid_map.save_map(map_save_path)
+    
+    # 运行算法
+    algorithms = ['astar', 'dijkstra']
+    paths = {}
+    explored = {}
+    metrics_data = {}
+    
+    for algo in algorithms:
+        path, plan_time, nodes_exp, closed = run_single_test(grid_map, start, goal, algo)
+        paths[algo] = path
+        explored[algo] = list(closed)
         
-        # 加载或生成地图
-        map_file = os.path.join(MAPS_DIR, f'{args.map}.txt')
-        
-        if os.path.exists(map_file):
-            print(f"\n加载地图: {map_file}")
-            grid_map = GridMap.load_from_file(map_file)
+        # 计算性能指标
+        metrics = Metrics. evaluate_path(path, grid_map, plan_time, nodes_exp)
+        metrics_data[algo] = metrics
+    
+    # 可视化
+    visualizer = Visualizer(grid_map)
+    
+    # 绘制单独的路径图
+    for algo, path in paths.items():
+        if path:
+            save_path = os.path.join(RESULTS_DIR, 'images', f'{map_type}_{algo}_path.png')
+            visualizer.plot_path(
+                path, start, goal,
+                title=f'{algo.upper()} Path Planning - {map_type.upper()}',
+                explored_nodes=explored[algo],
+                save_path=save_path
+            )
+    
+    # 绘制对比图
+    comparison_path = os.path.join(RESULTS_DIR, 'comparison', f'{map_type}_comparison.png')
+    visualizer.plot_comparison(paths, start, goal, explored, save_path=comparison_path)
+    
+    # 绘制性能对比图
+    performance_path = os.path.join(RESULTS_DIR, 'comparison', f'{map_type}_performance.png')
+    visualizer.plot_performance_bars(metrics_data, save_path=performance_path)
+    
+    # 保存性能数据
+    csv_path = os.path.join(RESULTS_DIR, 'data', f'{map_type}_metrics.csv')
+    Metrics.save_metrics_to_csv(metrics_data, csv_path)
+    
+    # 打印性能对比
+    print("\n" + "="*60)
+    print("性能对比")
+    print("="*60)
+    print(f"{'算法':<15} {'路径长度':<12} {'规划时间(s)':<15} {'探索节点': <12} {'平滑度':<10}")
+    print("-"*60)
+    for algo, metrics in metrics_data.items():
+        if metrics['success']:
+            print(f"{algo. upper():<15} {metrics['path_length']:<12.2f} "
+                  f"{metrics['planning_time']: <15.4f} {metrics['nodes_explored']:<12} "
+                  f"{metrics['smoothness']:<10.2f}")
         else:
-            print(f"\n地图文件不存在，生成新地图...")
-            if args.map in MAP_CONFIG:
-                config = MAP_CONFIG[args.map]
-                if config.get('type') == 'maze':
-                    grid_map = MapGenerator.generate_maze(
-                        config['size'][0], 
-                        config['size'][1],
-                        seed=RANDOM_SEED
-                    )
-                else:
-                    grid_map = MapGenerator.generate_random_map(
-                        config['size'][0],
-                        config['size'][1],
-                        config['obstacle_density'],
-                        seed=RANDOM_SEED
-                    )
-                # 保存生成的地图
-                os.makedirs(MAPS_DIR, exist_ok=True)
-                grid_map.save_to_file(map_file)
-                print(f"  地图已保存: {map_file}")
-            else:
-                print(f"错误: 未知的地图配置 '{args.map}'")
-                return
-        
-        start = grid_map.start
-        goal = grid_map.goal
-        
-        print(f"\n地图信息:")
-        print(f"  尺寸: {grid_map.width} x {grid_map.height}")
-        print(f"  起点: {start}")
-        print(f"  终点: {goal}")
-        print(f"  障碍物数量: {np.sum(grid_map.grid == 1)}")
-        
-        # 创建规划器
-        planners = {
-            'astar': lambda: AStarPlanner(grid_map),
-            'dijkstra': lambda: DijkstraPlanner(grid_map),
-            'rrt': lambda: RRTPlanner(grid_map, **RRT_CONFIG),
-            'genetic': lambda: GeneticPlanner(grid_map, **GA_CONFIG)
-        }
-        
-        # 运行算法
-        if args.algorithm == 'all':
-            print("\n" + "=" * 60)
-            print("运行所有算法对比实验".center(60))
-            print("=" * 60)
-            
-            results = {}
-            for name in ['astar', 'dijkstra', 'rrt', 'genetic']:
-                print(f"\n>>> 运行 {name.upper()} 算法...")
-                planner = planners[name]()
-                
-                start_time = time.time()
-                path, stats = planner.plan(start, goal)
-                planning_time = time.time() - start_time
-                
-                if path is None:
-                    print(f"  ✗ 算法失败: 未找到路径")
-                    continue
-                
-                metrics = Metrics.evaluate_path(path, grid_map, planning_time, stats.get('nodes_explored', 0))
-                results[name] = {
-                    'path': path,
-                    'metrics': metrics,
-                    'explored': stats.get('explored_nodes', [])
-                }
-                
-                print(f"  ✓ 成功!")
-                print(f"    - 路径长度: {metrics['path_length']:.2f}")
-                print(f"    - 规划时间: {planning_time:.4f}s")
-                print(f"    - 探索节点: {metrics['nodes_explored']}")
-                print(f"    - 平滑度: {metrics['smoothness']:.2f}")
-            
-            # 可视化对比
-            if args.visualize or args.save:
-                print(f"\n生成对比可视化...")
-                vis = Visualizer(grid_map)
-                save_path = os.path.join(RESULTS_DIR, 'comparison', 'all_algorithms.png') if args.save else None
-                
-                paths_dict = {name: res['path'] for name, res in results.items()}
-                explored_dict = {name: res['explored'] for name, res in results.items()}
-                
-                vis.plot_comparison(paths_dict, start, goal, explored_dict, save_path=save_path)
-                
-                if save_path:
-                    print(f"  对比图已保存: {save_path}")
-                
-                # 生成性能对比图
-                metrics_dict = {name: res['metrics'] for name, res in results.items()}
-                metrics_save_path = os.path.join(RESULTS_DIR, 'comparison', 'performance_comparison.png') if args.save else None
-                vis.plot_performance_bars(metrics_dict, save_path=metrics_save_path)
-                
-                if metrics_save_path:
-                    print(f"  性能对比图已保存: {metrics_save_path}")
-            
-            # 保存数据
-            if args.save:
-                import pandas as pd
-                data_file = os.path.join(RESULTS_DIR, 'data', f'comparison_{args.map}.csv')
-                df_data = []
-                for name, res in results.items():
-                    row = {'algorithm': name}
-                    row.update(res['metrics'])
-                    df_data.append(row)
-                df = pd.DataFrame(df_data)
-                df.to_csv(data_file, index=False)
-                print(f"  数据已保存: {data_file}")
-        
-        else:
-            # 运行单个算法
-            print("\n" + "=" * 60)
-            print(f"运行 {args.algorithm.upper()} 算法".center(60))
-            print("=" * 60)
-            
-            planner = planners[args.algorithm]()
-            
-            print(f"\n开始规划...")
-            start_time = time.time()
-            path, stats = planner.plan(start, goal)
-            planning_time = time.time() - start_time
-            
-            if path is None:
-                print(f"\n✗ 规划失败: 未找到从 {start} 到 {goal} 的路径")
-                print(f"  建议: 检查地图连通性或增加算法迭代次数")
-                return
-            
-            print(f"\n✓ 规划成功!")
-            
-            metrics = Metrics.evaluate_path(path, grid_map, planning_time, stats.get('nodes_explored', 0))
-            
-            print(f"\n性能指标:")
-            print(f"  路径长度: {metrics['path_length']:.2f}")
-            print(f"  规划时间: {planning_time:.4f}s")
-            print(f"  探索节点数: {metrics['nodes_explored']}")
-            print(f"  路径平滑度: {metrics['smoothness']:.2f}")
-            print(f"  安全距离: {metrics['safety_margin']:.2f}")
-            
-            # 可视化
-            if args.visualize or args.save:
-                print(f"\n生成可视化...")
-                vis = Visualizer(grid_map)
-                save_path = os.path.join(RESULTS_DIR, 'images', f'{args.algorithm}_{args.map}.png') if args.save else None
-                
-                vis.plot_path(
-                    path, 
-                    start, 
-                    goal,
-                    title=f'{args.algorithm.upper()} - {args.map}',
-                    explored_nodes=stats.get('explored_nodes', []),
-                    save_path=save_path
-                )
-                
-                if save_path:
-                    print(f"  图片已保存: {save_path}")
-        
-        print("\n" + "=" * 60)
-        print("程序执行完成!".center(60))
-        print("=" * 60)
-        
-    except ImportError as e:
-        print(f"\n错误: 缺少必要的模块")
-        print(f"  {e}")
-        print(f"\n请先运行: pip install -r requirements.txt")
-    except Exception as e:
-        print(f"\n错误: {e}")
-        import traceback
-        traceback.print_exc()
+            print(f"{algo.upper():<15} {'FAILED':<12} {metrics['planning_time']:<15.4f} "
+                  f"{metrics['nodes_explored']:<12} {'N/A':<10}")
+    print("="*60)
+
+
+def main():
+    """主函数"""
+    # 可以测试不同复杂度的地图
+    test_maps = ['simple', 'medium', 'complex']
+    
+    for map_type in test_maps:
+        run_comparison(map_type)
+        print("\n\n")
+
 
 if __name__ == '__main__':
     main()
