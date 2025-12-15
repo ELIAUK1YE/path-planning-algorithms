@@ -17,10 +17,10 @@ os.makedirs(os.path.join(RESULTS_DIR, 'comparison'), exist_ok=True)
 # 地图配置
 MAP_CONFIG = {
     'simple': {'size': (50, 50), 'obstacle_density': 0.15},
-    'medium': {'size': (50, 50), 'obstacle_density': 0.25},
+    'medium': {'size':  (50, 50), 'obstacle_density': 0.25},
     'complex': {'size': (50, 50), 'obstacle_density': 0.35},
     'maze': {'size': (30, 30), 'type': 'maze'},
-    'large': {'size': (100, 100), 'obstacle_density': 0.20}
+    'large': {'size':  (100, 100), 'obstacle_density': 0.20}
 }
 
 # A*算法配置
@@ -33,32 +33,7 @@ ASTAR_CONFIG = {
 # Dijkstra算法配置
 DIJKSTRA_CONFIG = {
     'allow_diagonal': True,
-    'diagonal_cost': 1.414
-}
-
-# RRT算法配置
-RRT_CONFIG = {
-    'max_iter': 5000,
-    'step_size': 5,
-    'goal_sample_rate': 0.1,
-    'goal_threshold': 3.0
-}
-
-# 遗传算法配置
-GA_CONFIG = {
-    'population_size': 100,
-    'generations': 200,
-    'num_waypoints': 10,
-    'mutation_rate': 0.1,
-    'crossover_rate': 0.8,
-    'elite_ratio': 0.1
-}
-
-# 适应度权重
-FITNESS_WEIGHTS = {
-    'path_length': 1.0,
-    'collision': 100.0,
-    'smoothness': 0.5
+    'diagonal_cost':  1.414
 }
 
 # 可视化配置
@@ -73,7 +48,7 @@ VIS_CONFIG = {
     'color_obstacle': 'black',
     'color_free': 'white',
     'color_path': 'blue',
-    'color_explored': 'lightblue'
+    'color_explored':  'lightblue'
 }
 
 # 随机种子（保证可复现性）
