@@ -3,6 +3,7 @@
 用于表示二维栅格地图，支持障碍物检测、路径验证等功能
 """
 import numpy as np
+import matplotlib.pyplot as plt
 from typing import Tuple, List, Optional
 
 class GridMap:
@@ -25,7 +26,7 @@ class GridMap:
             width: 地图宽度
             height: 地图高度
         """
-        self.width = width
+        self. width = width
         self.height = height
         self.grid = np.zeros((height, width), dtype=int)
         self.start = None
@@ -42,7 +43,7 @@ class GridMap:
         if self.is_valid(x, y):
             self.grid[y, x] = 1
     
-    def is_obstacle(self, x: int, y: int) -> bool:
+    def is_obstacle(self, x:  int, y: int) -> bool:
         """
         检查是否为障碍物
         
@@ -68,9 +69,9 @@ class GridMap:
         Returns:
             bool: 如果坐标有效返回true
         """
-        return 0 <= x < self.width and 0 <= y < self.height
+        return 0 <= x < self.width and 0 <= y < self. height
     
-    def get_neighbors(self, x: int, y: int, allow_diagonal: bool = True) -> List[Tuple[int, int, float]]:
+    def get_neighbors(self, x: int, y: int, allow_diagonal:  bool = True) -> List[Tuple[int, int, float]]:
         """
         获取邻居节点
         
@@ -97,111 +98,70 @@ class GridMap:
             nx, ny = x + dx, y + dy
             
             if self.is_valid(nx, ny) and not self.is_obstacle(nx, ny):
-                # 对角线移动的代价为sqrt(2)
-                cost = 1.414 if (dx != 0 and dy != 0) else 1.0
+                # 对角线移动的代价为sqrt(2)，其他为1
+                cost = 1.414 if abs(dx) + abs(dy) == 2 else 1.0
                 neighbors.append((nx, ny, cost))
         
         return neighbors
     
-    def get_distance_to_obstacle(self, x: int, y: int) -> float:
+    def generate_random_obstacles(self, density: float = 0.2):
         """
-        计算到最近障碍物的距离
+        生成随机障碍物
         
         Args:
-            x: x坐标
-            y: y坐标
-            
-        Returns:
-            float: 到最近障碍物的距离
+            density: 障碍物密度，范围[0, 1]
         """
-        min_dist = float('inf')
+        obstacle_count = int(self.width * self.height * density)
         
-        # 只在附近区域搜索（优化性能）
-        search_radius = 10
-        
-        for dx in range(-search_radius, search_radius + 1):
-            for dy in range(-search_radius, search_radius + 1):
-                ox, oy = x + dx, y + dy
-                if self.is_valid(ox, oy) and self.is_obstacle(ox, oy):
-                    dist = np.sqrt(dx**2 + dy**2)
-                    min_dist = min(min_dist, dist)
-        
-        return min_dist if min_dist != float('inf') else search_radius
+        for _ in range(obstacle_count):
+            x = np.random. randint(0, self.width)
+            y = np.random.randint(0, self. height)
+            self.set_obstacle(x, y)
     
-    def set_start(self, x: int, y: int):
-        """设置起点"""
-        if self.is_valid(x, y) and not self.is_obstacle(x, y):
-            self.start = (x, y)
-        else:
-            raise ValueError(f"起点 ({x}, {y}) 不合法")
-    
-    def set_goal(self, x: int, y: int):
-        """设置终点"""
-        if self.is_valid(x, y) and not self.is_obstacle(x, y):
-            self.goal = (x, y)
-        else:
-            raise ValueError(f"终点 ({x}, {y}) 不合法")
-    
-    def save_to_file(self, filename: str):
+    def generate_maze(self):
         """
-        保存地图到文件
+        生成迷宫式障碍物
+        使用递归分割算法
+        """
+        # 先填满障碍物
+        self.grid[:] = 1
+        
+        # 递归生成迷宫
+        self._generate_maze_recursive(0, 0, self.width, self.height)
+    
+    def _generate_maze_recursive(self, x: int, y: int, w: int, h: int):
+        """
+        递归生成迷宫
         
         Args:
-            filename: 文件名
+            x, y: 区域左上角坐标
+            w, h:  区域宽度和高度
         """
-        with open(filename, 'w') as f:
-            f.write(f"# Grid Map {self.width}x{self.height}\n")
-            f.write(f"{self.width} {self.height}\n")
-            
-            if self.start:
-                f.write(f"START {self.start[0]} {self.start[1]}\n")
-            if self.goal:
-                f.write(f"GOAL {self.goal[0]} {self.goal[1]}\n")
-            
-            for y in range(self.height):
-                row = ' '.join(str(self.grid[y, x]) for x in range(self.width))
-                f.write(row + '\n')
+        if w < 2 or h < 2:
+            return
+        
+        # 清除一些格子
+        for i in range(x, min(x + w, self.width)):
+            for j in range(y, min(y + h, self.height)):
+                if np.random.random() > 0.3: 
+                    self.grid[j, i] = 0
     
-    @classmethod
-    def load_from_file(cls, filename: str) -> 'GridMap':
+    def save_map(self, filename: str):
         """
-        从文件加载地图
+        保存地图为图片
         
-        Args:
-            filename: 文件名
-            
-        Returns:
-            GridMap: 加载的地图对象
+        Args: 
+            filename: 保存路径
         """
-        with open(filename, 'r') as f:
-            lines = f.readlines()
-        
-        # 跳过注释行
-        lines = [line.strip() for line in lines if line.strip() and not line.startswith('#')]
-        
-        # 读取尺寸
-        width, height = map(int, lines[0].split())
-        grid_map = cls(width, height)
-        
-        line_idx = 1
-        
-        # 读取起点和终点
-        while line_idx < len(lines) and not lines[line_idx][0].isdigit():
-            parts = lines[line_idx].split()
-            if parts[0] == 'START':
-                grid_map.start = (int(parts[1]), int(parts[2]))
-            elif parts[0] == 'GOAL':
-                grid_map.goal = (int(parts[1]), int(parts[2]))
-            line_idx += 1
-        
-        # 读取地图数据
-        for y in range(height):
-            if line_idx + y < len(lines):
-                row_data = list(map(int, lines[line_idx + y].split()))
-                for x in range(min(width, len(row_data))):
-                    grid_map.grid[y, x] = row_data[x]
-        
-        return grid_map
+        plt.figure(figsize=(10, 10))
+        plt.imshow(self.grid, cmap='binary', origin='lower')
+        plt.title('Grid Map')
+        plt.xlabel('X')
+        plt.ylabel('Y')
+        plt.grid(True, alpha=0.3)
+        plt.savefig(filename, dpi=150, bbox_inches='tight')
+        plt.close()
+        print(f"地图已保存到:  {filename}")
     
     def __repr__(self):
-        return f"GridMap({self.width}x{self.height}, obstacles={np.sum(self.grid==1)})"
+        return f"GridMap(width={self.width}, height={self.height}, obstacles={np.sum(self.grid)})"
