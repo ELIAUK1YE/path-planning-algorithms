@@ -3,7 +3,7 @@
 用于表示二维栅格地图，支持障碍物检测、路径验证等功能
 """
 import numpy as np
-import matplotlib.pyplot as plt
+import matplotlib. pyplot as plt
 from typing import Tuple, List, Optional
 
 class GridMap:
@@ -23,12 +23,12 @@ class GridMap:
         初始化栅格地图
         
         Args:
-            width: 地图宽度
+            width:  地图宽度
             height: 地图高度
         """
-        self. width = width
+        self.width = width
         self.height = height
-        self.grid = np.zeros((height, width), dtype=int)
+        self.grid = np. zeros((height, width), dtype=int)
         self.start = None
         self.goal = None
     
@@ -43,13 +43,13 @@ class GridMap:
         if self.is_valid(x, y):
             self.grid[y, x] = 1
     
-    def is_obstacle(self, x:  int, y: int) -> bool:
+    def is_obstacle(self, x: int, y: int) -> bool:
         """
         检查是否为障碍物
         
         Args:
-            x: x坐标
-            y: y坐标
+            x:  x坐标
+            y:  y坐标
             
         Returns:
             bool: 如果是障碍物返回true
@@ -62,25 +62,25 @@ class GridMap:
         """
         检查坐标是否在地图范围内
         
-        Args:
+        Args: 
             x: x坐标
             y: y坐标
             
         Returns:
             bool: 如果坐标有效返回true
         """
-        return 0 <= x < self.width and 0 <= y < self. height
+        return 0 <= x < self.width and 0 <= y < self.height
     
-    def get_neighbors(self, x: int, y: int, allow_diagonal:  bool = True) -> List[Tuple[int, int, float]]:
+    def get_neighbors(self, x: int, y: int, allow_diagonal: bool = True) -> List[Tuple[int, int, float]]:
         """
         获取邻居节点
         
-        Args:
+        Args: 
             x: 当前点x坐标
-            y: 当前点y坐标
+            y:  当前点y坐标
             allow_diagonal: 是否允许对角线移动
             
-        Returns:
+        Returns: 
             List[Tuple[int, int, float]]: 邻居节点列表，每个元素为(nx, ny, cost)
         """
         neighbors = []
@@ -127,13 +127,13 @@ class GridMap:
         self.grid[:] = 1
         
         # 递归生成迷宫
-        self._generate_maze_recursive(0, 0, self.width, self.height)
+        self._generate_maze_recursive(0, 0, self. width, self.height)
     
     def _generate_maze_recursive(self, x: int, y: int, w: int, h: int):
         """
         递归生成迷宫
         
-        Args:
+        Args: 
             x, y: 区域左上角坐标
             w, h:  区域宽度和高度
         """
@@ -143,14 +143,38 @@ class GridMap:
         # 清除一些格子
         for i in range(x, min(x + w, self.width)):
             for j in range(y, min(y + h, self.height)):
-                if np.random.random() > 0.3: 
+                if np.random.random() > 0.3:
                     self.grid[j, i] = 0
+    
+    def get_distance_to_obstacle(self, x: int, y: int) -> float:
+        """
+        计算到最近障碍物的距离
+        
+        Args:
+            x: x坐标
+            y: y坐标
+            
+        Returns:
+            float:  到最近障碍物的欧氏距离
+        """
+        min_dist = float('inf')
+        
+        # 只搜索附近的区域以提高效率
+        search_radius = 10
+        
+        for ox in range(max(0, x - search_radius), min(self.width, x + search_radius + 1)):
+            for oy in range(max(0, y - search_radius), min(self.height, y + search_radius + 1)):
+                if self. is_obstacle(ox, oy):
+                    dist = np. sqrt((x - ox)**2 + (y - oy)**2)
+                    min_dist = min(min_dist, dist)
+        
+        return min_dist if min_dist != float('inf') else 0.0
     
     def save_map(self, filename: str):
         """
         保存地图为图片
         
-        Args: 
+        Args:
             filename: 保存路径
         """
         plt.figure(figsize=(10, 10))
