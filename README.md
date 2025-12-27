@@ -1,252 +1,312 @@
-# 基于搜索与优化算法的路径规划系统
+# 路径规划算法对比项目
+
+一个用于对比和评估经典路径规划算法的Python项目，实现了A*和Dijkstra算法的完整对比分析。
 
 ## 📋 项目简介
 
-本项目实现了一个完整的路径规划系统，适用于室内移动机器人、自动导航等应用场景。系统实现了4种经典路径规划算法，并提供了完整的可视化和性能评估工具。
+本项目实现了两种经典的路径规划算法，并提供了完整的性能评估和可视化工具。适用于学习路径规划算法、算法性能对比研究等场景。
 
-### ✨ 功能特性
+### 支持的算法
 
-- ✅ **4种核心算法**: A*, Dijkstra, RRT, 遗传算法
-- ✅ **多种测试地图**: 简单、中等、复杂、迷宫、大规模
-- ✅ **完整可视化**: 路径图、对比图、性能图
-- ✅ **性能评估**: 6项评估指标，CSV数据导出
-- ✅ **详细报告**: 30+页技术文档
-- ✅ **易于使用**: 命令行界面，配置灵活
+- **A\* (A-Star)**: 启发式搜索算法，使用欧几里得距离作为启发函数
+- **Dijkstra**: 经典的最短路径算法，保证找到最优路径
 
-## 🛠️ 技术栈
+## 🚀 功能特性
 
-- Python 3.8+
-- NumPy (数值计算)
-- Matplotlib (可视化)
-- Pandas (数据处理)
-- SciPy (科学计算)
-
-## 📦 环境要求
-
-- Python 3.8+
-- 操作系统: Windows/Linux/macOS
-
-## 🚀 安装说明
-
-```bash
-# 1. 克隆仓库
-git clone https://github.com/ELIAUK1YE/path-planning-algorithms.git
-cd path-planning-algorithms
-
-# 2. 创建虚拟环境（推荐）
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# 或
-venv\Scripts\activate  # Windows
-
-# 3. 安装依赖
-pip install -r requirements.txt
-
-# 4. 创建结果目录
-mkdir -p results/images results/data results/comparison
-```
-
-## 💡 快速开始
-
-### 1. 运行单个算法
-
-```bash
-# 运行A*算法
-python main.py --algorithm astar --map medium --visualize
-
-# 运行RRT算法并保存结果
-python main.py --algorithm rrt --map complex --visualize --save
-
-# 运行遗传算法
-python main.py --algorithm genetic --map maze --visualize
-```
-
-### 2. 对比所有算法
-
-```bash
-# 在中等复杂度地图上对比所有算法
-python main.py --algorithm all --map medium --visualize --save
-```
-
-### 3. 运行完整实验
-
-```bash
-# 运行所有实验（生成完整结果数据）
-python experiments/run_experiments.py
-
-# 运行算法对比实验
-python experiments/compare_algorithms.py
-```
+- ✅ 两种经典算法完整实现
+- ✅ 多种地图生成模式（简单、中等、复杂、迷宫、大规模）
+- ✅ 支持对角线移动
+- ✅ 完整的性能评估指标
+- ✅ 精美的可视化路径规划过程
+- ✅ 算法对比图表自动生成
+- ✅ 性能数据导出（CSV格式）
+- ✅ 详细的中文注释和文档
 
 ## 📁 项目结构
 
 ```
 path-planning-algorithms/
-├── README.md                    # 项目说明文档
-├── requirements.txt             # Python依赖包
-├── config.py                    # 全局配置文件
-├── main.py                      # 主程序入口
-│
-├── algorithms/                  # 算法实现模块
+├── algorithms/           # 算法实现
 │   ├── __init__.py
-│   ├── astar.py                # A*算法
-│   ├── dijkstra.py             # Dijkstra算法
-│   ├── rrt.py                  # RRT算法
-│   └── genetic_algorithm.py    # 遗传算法
-│
-├── environment/                 # 环境模块
+│   ├── astar.py         # A*算法
+│   └── dijkstra.py      # Dijkstra算法
+├── environment/         # 环境模块
 │   ├── __init__.py
-│   ├── grid_map.py             # 栅格地图类
-│   └── map_generator.py        # 地图生成器
-│
-├── utils/                       # 工具模块
+│   └── grid_map.py      # 网格地图
+├── utils/               # 工具模块
 │   ├── __init__.py
-│   ├── visualizer.py           # 可视化工具
-│   └── metrics.py              # 性能评估工具
-│
-├── experiments/                 # 实验脚本
-│   ├── __init__.py
-│   ├── run_experiments.py      # 运行所有实验
-│   └── compare_algorithms.py   # 算法对比
-│
-├── maps/                        # 测试地图数据
-│   ├── simple_50x50.txt
-│   ├── medium_50x50.txt
-│   ├── complex_50x50.txt
-│   ├── maze_30x30.txt
-│   └── large_100x100.txt
-│
-├── results/                     # 实验结果（运行后生成）
-│   ├── images/                 # 可视化图片
-│   ├── data/                   # CSV数据文件
-│   └── comparison/             # 对比结果
-│
-└── report/                      # 技术报告
-    └── technical_report.md     # 技术报告文档
+│   ├── metrics.py       # 性能评估
+│   └── visualizer.py    # 可视化工具
+├── results/             # 结果输出目录
+│   ├── images/          # 路径图像
+│   ├── data/            # 性能数据
+│   └── comparison/      # 对比图表
+├── config.py            # 全局配置
+├── main.py              # 主程序
+├── requirements.txt     # 依赖包
+└── README.md            # 项目文档
 ```
 
-## 🎯 算法说明
+## 🔧 安装与配置
 
-### A*算法
-- **原理**: 启发式搜索算法，f(n) = g(n) + h(n)
-- **时间复杂度**: O((V+E)logV)
-- **优点**: 保证最优解，效率高
-- **适用场景**: 静态环境，地图规模中小
+### 环境要求
 
-### Dijkstra算法
-- **原理**: 经典最短路径算法（无启发式）
-- **时间复杂度**: O((V+E)logV)
-- **优点**: 保证最优解，不需要启发式函数
-- **适用场景**: 需要到所有点的最短路径
+- Python 3.7+
+- pip
 
-### RRT算法
-- **原理**: 快速扩展随机树
-- **时间复杂度**: O(n)
-- **优点**: 适用于高维空间和复杂环境
-- **适用场景**: 复杂障碍物环境，高维空间
+### 安装步骤
 
-### 遗传算法
-- **原理**: 模拟生物进化的优化算法
-- **时间复杂度**: O(G×P×L)
-- **优点**: 全局搜索能力强，多目标优化
-- **适用场景**: 复杂约束，多目标优化
+```bash
+# 1. 克隆项目
+git clone https://github.com/ELIAUK1YE/path-planning-algorithms.git
+cd path-planning-algorithms
+
+# 2. 创建虚拟环境（推荐）
+python -m venv venv
+
+# Windows激活：
+venv\Scripts\activate
+
+# Linux/Mac激活：
+source venv/bin/activate
+
+# 3. 安装依赖包
+pip install -r requirements.txt
+
+# 或使用国内镜像加速：
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+## 🎯 使用方法
+
+### 快速开始
+
+运行主程序进行算法对比：
+
+```bash
+python main.py
+```
+
+程序会自动：
+1. 生成不同复杂度的地图（simple, medium, complex）
+2. 运行A*和Dijkstra算法
+3. 生成可视化图表
+4. 保存性能数据到CSV文件
+
+### 自定义测试
+
+编辑 `main.py` 中的 `main()` 函数来选择测试的地图类型：
+
+```python
+def main():
+    # 可以测试不同复杂度的地图
+    test_maps = ['simple', 'medium', 'complex', 'maze', 'large']
+    
+    for map_type in test_maps:
+        run_comparison(map_type)
+```
+
+### 配置参数
+
+在 `config.py` 中修改算法参数：
+
+```python
+# 地图配置
+MAP_CONFIG = {
+    'simple': {'size': (50, 50), 'obstacle_density': 0.15},
+    'medium': {'size': (50, 50), 'obstacle_density': 0.25},
+    'complex': {'size': (50, 50), 'obstacle_density': 0.35},
+    'maze': {'size': (30, 30), 'type': 'maze'},
+    'large': {'size': (100, 100), 'obstacle_density': 0.20}
+}
+
+# A*算法配置
+ASTAR_CONFIG = {
+    'heuristic': 'euclidean',  # 可选: 'manhattan', 'chebyshev'
+    'allow_diagonal': True,
+    'diagonal_cost': 1.414
+}
+
+# Dijkstra算法配置
+DIJKSTRA_CONFIG = {
+    'allow_diagonal': True,
+    'diagonal_cost': 1.414
+}
+```
+
+## 🧪 算法说明
+
+### A* 算法
+
+A*算法结合了Dijkstra算法的最优性和贪婪最佳优先搜索的效率：
+
+```
+f(n) = g(n) + h(n)
+```
+
+- `g(n)`: 从起点到节点n的实际代价
+- `h(n)`: 从节点n到终点的启发式估计代价（欧几里得距离）
+
+**特点**：
+- ✅ 保证找到最优路径
+- ✅ 搜索效率高，探索节点少
+- ✅ 适用于静态环境
+- ⚠️ 需要合适的启发式函数
+
+### Dijkstra 算法
+
+Dijkstra算法是一种经典的单源最短路径算法，保证找到最优路径，但不使用启发式函数。
+
+**特点**：
+- ✅ 保证找到最优路径
+- ✅ 不需要启发式函数
+- ✅ 可计算到所有点的最短路径
+- ⚠️ 探索节点多，速度较慢
 
 ## 📊 性能指标
 
-系统评估以下6项指标：
+项目评估以下性能指标：
 
-1. **路径长度** (Path Length): 路径总距离
-2. **规划时间** (Planning Time): 算法运行时间
-3. **探索节点数** (Nodes Explored): 搜索的节点数量
-4. **路径平滑度** (Smoothness): 路径转角惩罚
-5. **安全距离** (Safety Margin): 到障碍物的最小距离
-6. **成功率** (Success Rate): 是否找到可行路径
+| 指标 | 说明 |
+|------|------|
+| **路径长度** | 从起点到终点的总距离 |
+| **规划时间** | 算法执行耗时（秒） |
+| **探索节点数** | 算法搜索的节点总数 |
+| **路径平滑度** | 路径转角的总和（越小越平滑） |
+| **安全边距** | 路径与障碍物的平均距离 |
+| **成功率** | 是否找到可行路径 |
 
-## 📈 实验结果示例
+## 📈 输出结果
 
-### 性能对比（50x50中等地图）
+运行后会在 `results/` 目录下生成：
 
-| 算法 | 路径长度 | 规划时间(s) | 探索节点 | 平滑度 |
-|------|---------|------------|---------|--------|
-| A* | 68.5 | 0.05 | 1200 | 8.2 |
-| Dijkstra | 68.5 | 0.12 | 2400 | 8.2 |
-| RRT | 85.3 | 0.35 | 3500 | 15.6 |
-| Genetic | 72.1 | 2.50 | - | 6.5 |
+### 1. 图像输出 (`results/images/`)
+- `{map_type}_map.png` - 地图布局
+- `{map_type}_astar_path.png` - A*算法路径图
+- `{map_type}_dijkstra_path.png` - Dijkstra算法路径图
 
-*详细实验结果请查看 `report/technical_report.md`*
+### 2. 对比图表 (`results/comparison/`)
+- `{map_type}_comparison.png` - 算法并排对比图
+- `{map_type}_performance.png` - 性能指标柱状图
 
-## 🔧 配置说明
+### 3. 数据文件 (`results/data/`)
+- `{map_type}_metrics.csv` - 性能指标CSV数据
 
-所有配置参数位于 `config.py`：
+### 示例输出
 
-```python
-# 算法参数
-ASTAR_CONFIG = {
-    'heuristic': 'euclidean',
-    'allow_diagonal': True
-}
+```
+==============================================================
+路径规划算法对比测试 - MEDIUM 地图
+==============================================================
+地图大小: (50, 50)
+起点: (5, 5), 终点: (44, 44)
 
-RRT_CONFIG = {
-    'max_iter': 5000,
-    'step_size': 5,
-    'goal_sample_rate': 0.1
-}
+运行 ASTAR 算法...
+✓ 找到路径! 长度: 43, 耗时: 0.0025秒, 探索节点: 293
 
-GA_CONFIG = {
-    'population_size': 100,
-    'generations': 200,
-    'mutation_rate': 0.1
-}
+运行 DIJKSTRA 算法...
+✓ 找到路径! 长度: 43, 耗时: 0.0110秒, 探索节点: 2087
+
+==============================================================
+性能对比
+==============================================================
+算法            路径长度      规划时间(s)      探索节点     平滑度
+--------------------------------------------------------------
+ASTAR           55.23        0.0025          293          12.34
+DIJKSTRA        55.23        0.0110          2087         12.34
+==============================================================
 ```
 
-## ❓ 常见问题
+## 🎨 可视化示例
 
-**Q: 如何修改算法参数？**  
-A: 编辑 `config.py` 文件中的相应配置字典。
+项目生成的可视化图表包括：
 
-**Q: 如何创建自定义地图？**  
-A: 在 `maps/` 目录下创建文本文件，格式参考现有地图文件。
+1. **路径规划图** - 显示起点（绿色）、终点（红色）、障碍物（黑色）、探索节点（浅蓝色）和最终路径（蓝色）
+2. **算法对比图** - 并排显示不同算法的结果，便于直观比较
+3. **性能柱状图** - 对比各项性能指标（路径长度、规划时间、探索节点数等）
 
-**Q: 如何保存实验结果？**  
-A: 使用 `--save` 参数，或运行 `run_experiments.py` 自动保存所有结果。
+## 🔍 扩展与开发
 
-**Q: 算法运行失败怎么办？**  
-A: 检查地图连通性，增加算法迭代次数（修改config.py）。
+### 添加新的启发式函数
 
-**Q: 如何生成技术报告中的图表？**  
-A: 运行 `python experiments/run_experiments.py`，所有图表会自动保存到 `results/`。
+在 `algorithms/astar.py` 中修改 `heuristic()` 方法：
 
-## 📚 技术报告
+```python
+def heuristic(self, pos1: Tuple[int, int], pos2: Tuple[int, int]) -> float:
+    # 曼哈顿距离
+    return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
+    
+    # 切比雪夫距离
+    return max(abs(pos1[0] - pos2[0]), abs(pos1[1] - pos2[1]))
+```
 
-完整的技术报告位于 `report/technical_report.md`，包含：
+### 自定义地图
 
-- 理论分析（算法原理、复杂度分析）
-- 系统设计（架构设计、模块说明）
-- 实验结果（4组对比实验，12+张图表）
-- 性能分析（算法优缺点、适用场景）
-- 参考文献（15+篇学术文献）
+```python
+from environment.grid_map import GridMap
 
-## 👤 开发者
+# 创建自定义地图
+grid_map = GridMap(100, 100)
+grid_map.generate_random_obstacles(density=0.3)
 
-- **作者**: ELIAUK1YE
-- **项目**: 人工智能课程大作业
-- **日期**: 2025年12月
+# 或手动设置障碍物
+grid_map.set_obstacle(x=10, y=10)
+```
+
+## 📦 依赖包
+
+- `numpy` - 数值计算和数组操作
+- `matplotlib` - 数据可视化
+- `seaborn` - 高级统计图表
+- `pandas` - 数据处理和CSV操作
+
+## 🐛 常见问题
+
+**Q: 如何修改地图大小？**  
+A: 编辑 `config.py` 中的 `MAP_CONFIG`，修改对应地图类型的 `size` 参数。
+
+**Q: 算法没找到路径怎么办？**  
+A: 检查起点和终点是否被障碍物包围，或降低 `obstacle_density` 参数。
+
+**Q: 如何只测试某一种地图？**  
+A: 修改 `main.py` 中的 `test_maps` 列表，只保留需要的地图类型。
+
+**Q: 可视化窗口一闪而过？**  
+A: 程序会自动保存图片到 `results/` 目录，无需担心窗口关闭。
+
+**Q: 如何加快算法速度？**  
+A: 减小地图尺寸，或降低障碍物密度。
+
+## 🤝 贡献
+
+欢迎提交Issue和Pull Request！
+
+如果您有任何建议或发现bug，请：
+1. Fork 本项目
+2. 创建新的分支 (`git checkout -b feature/improvement`)
+3. 提交更改 (`git commit -am 'Add some feature'`)
+4. 推送到分支 (`git push origin feature/improvement`)
+5. 创建 Pull Request
 
 ## 📄 许可证
 
-MIT License
+MIT License - 详见 [LICENSE](LICENSE) 文件
+
+## 👤 作者
+
+**ELIAUK1YE**
+- GitHub: [@ELIAUK1YE](https://github.com/ELIAUK1YE)
+- 项目: 人工智能课程大作业
+- 日期: 2025年12月
 
 ## 🙏 致谢
 
-感谢以下开源项目和学术文献的启发：
-- Hart et al. (1968) - A* Algorithm
-- LaValle (1998) - RRT Algorithm
-- PythonRobotics项目
+感谢所有为路径规划算法研究做出贡献的研究者们！
 
-## 📮 联系方式
-
-如有问题或建议，请提Issue或Pull Request。
+参考文献：
+- Hart, P. E., Nilsson, N. J., & Raphael, B. (1968). A formal basis for the heuristic determination of minimum cost paths. IEEE transactions on Systems Science and Cybernetics, 4(2), 100-107.
+- Dijkstra, E. W. (1959). A note on two problems in connexion with graphs. Numerische mathematik, 1(1), 269-271.
 
 ---
 
-**注**: 本项目仅用于学习和研究目的。
+**⭐ 如果这个项目对您有帮助，请给个Star支持一下！**
